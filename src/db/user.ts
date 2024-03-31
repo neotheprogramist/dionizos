@@ -1,5 +1,6 @@
-import { z } from "@builder.io/qwik-city";
+import { server$, z } from "@builder.io/qwik-city";
 import { type Surreal } from "surrealdb.js";
+import { connectToDB } from ".";
 
 export const CreateUserIfNotExistsResult = z.object({
   id: z.string(),
@@ -67,6 +68,14 @@ export const getUserByAddress = async (db: Surreal, address: string) => {
   );
   return getUserByAddressResult.at(0);
 };
+
+export const getUserBalanceByAddress = server$(async function (
+  address: string,
+) {
+  const db = await connectToDB(this.env);
+  const user = await getUserByAddress(db, address);
+  return user?.balance;
+});
 
 const UpdateUserBalanceQuery =
   "UPDATE user SET address = type::string($address), balance = type::number($newBalance)";

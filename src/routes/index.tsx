@@ -33,6 +33,7 @@ import {
   type Quote,
 } from "~/db/contract";
 import { getBtcUsdtPrice } from "~/db/price";
+import { getUserBalanceByAddress } from "~/db/user";
 
 const QuoteSchema = z.object({
   quantity: z.number().nonnegative(),
@@ -128,29 +129,62 @@ export default component$(() => {
 
   return (
     <>
-      <WalletConnectButton>
-        <p class="font-normal">Connect Wallet</p>
+      <WalletConnectButton class="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">
+        <p>Connect Wallet</p>
       </WalletConnectButton>
 
-      {login.account && <p>{login.account.address}</p>}
-      <p>{`Balance: ${userBalance.value}`}</p>
+      {login.account && (
+        <p class="text-gray-700">Address: {login.account.address}</p>
+      )}
+      <p class="text-lg font-semibold">Balance: ${userBalance.value}</p>
 
-      <Form onSubmit$={handleSubmit}>
+      <Form onSubmit$={handleSubmit} class="space-y-4">
         <Field name="quantity" type="number">
           {(field, props) => (
-            <div>
-              <input {...props} type="number" value={field.value} />
-              {field.error && <div>{field.error}</div>}
+            <div class="flex flex-col">
+              <input
+                {...props}
+                type="number"
+                value={field.value}
+                class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+              />
+              {field.error && <div class="text-red-500">{field.error}</div>}
             </div>
           )}
         </Field>
-        <button type="submit" name="long-button" value="long">
+        <button
+          type="submit"
+          name="long-button"
+          value="long"
+          class="rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
+        >
           Long
         </button>
-        <button type="submit" name="short-button" value="short">
+        <button
+          type="submit"
+          name="short-button"
+          value="short"
+          class="rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
+        >
           Short
         </button>
       </Form>
+
+      <button
+        name="update-balance-button"
+        value="update-balance"
+        onClick$={async () => {
+          if (login.account && login.account.address) {
+            const result = await getUserBalanceByAddress(login.account.address);
+            if (result) {
+              userBalance.value = result;
+            }
+          }
+        }}
+        class="mt-4 rounded bg-indigo-500 px-4 py-2 font-bold text-white hover:bg-indigo-700"
+      >
+        Update Balance
+      </button>
 
       <button
         name="settle-button"
@@ -167,6 +201,7 @@ export default component$(() => {
             }
           }
         }}
+        class="mt-4 rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-700"
       >
         Settle
       </button>
