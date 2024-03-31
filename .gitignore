@@ -40,3 +40,14 @@ lerna-debug.log*
 # Yarn
 .yarn/*
 !.yarn/releases
+
+# Env
+.env
+
+# Whitepaper
+*.aux
+*.fdb_latexmk
+*.fls
+*.md
+*.pdf
+*.gz
