@@ -149,3 +149,19 @@ export const settleAllContractsForAddress = server$(async function (
     return { updateUserBalanceByAddressResult, diff };
   }
 });
+
+export const estimateAllContractsForAddress = server$(async function (
+  address: string,
+) {
+  const db = await connectToDB(this.env);
+  const contracts = await getAllContractsForAddress(db, address);
+  const user = await getUserByAddress(db, address);
+  const price = await getBtcUsdtPrice();
+  if (user) {
+    let diff = 0;
+    for (const contract of contracts) {
+      diff += (price - contract.price) * contract.quantity;
+    }
+    return { diff };
+  }
+});
