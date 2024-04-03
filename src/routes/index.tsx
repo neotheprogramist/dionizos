@@ -31,6 +31,7 @@ import {
   createContract,
   settleAllContractsForAddress,
   type Quote,
+  estimateAllContractsForAddress,
 } from "~/db/contract";
 import { getBtcUsdtPrice } from "~/db/price";
 import { getUserBalanceByAddress } from "~/db/user";
@@ -89,6 +90,7 @@ export default component$(() => {
   const modalConfig = useContext(ModalConfigContext);
   const login = useContext(LoginContext);
   const userBalance = useSignal(0);
+  const userEstimatedSettle = useSignal(0);
   const [quoteForm, { Form, Field }] = useForm<QuoteForm>({
     loader: useFormLoader(),
     action: useFormAction(),
@@ -137,6 +139,7 @@ export default component$(() => {
         <p class="text-gray-700">Address: {login.account.address}</p>
       )}
       <p class="text-lg font-semibold">Balance: ${userBalance.value}</p>
+      <p class="text-lg font-semibold">Estimated Settle: ${userEstimatedSettle.value}</p>
 
       <Form onSubmit$={handleSubmit} class="space-y-4">
         <Field name="quantity" type="number">
@@ -175,15 +178,15 @@ export default component$(() => {
         value="update-balance"
         onClick$={async () => {
           if (login.account && login.account.address) {
-            const result = await getUserBalanceByAddress(login.account.address);
+            const result = await estimateAllContractsForAddress(login.account.address);
             if (result) {
-              userBalance.value = result;
+              userEstimatedSettle.value = result.diff;
             }
           }
         }}
         class="mt-4 rounded bg-indigo-500 px-4 py-2 font-bold text-white hover:bg-indigo-700"
       >
-        Update Balance
+        Estimate Settle
       </button>
 
       <button
@@ -197,6 +200,7 @@ export default component$(() => {
             if (result && result.updateUserBalanceByAddressResult) {
               userBalance.value =
                 result.updateUserBalanceByAddressResult.balance;
+              userEstimatedSettle.value = 0
               console.log("diff", result.diff);
             }
           }
@@ -204,6 +208,22 @@ export default component$(() => {
         class="mt-4 rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-700"
       >
         Settle
+      </button>
+
+      <button
+        name="update-balance-button"
+        value="update-balance"
+        onClick$={async () => {
+          if (login.account && login.account.address) {
+            const result = await getUserBalanceByAddress(login.account.address);
+            if (result) {
+              userBalance.value = result;
+            }
+          }
+        }}
+        class="mt-4 rounded bg-indigo-500 px-4 py-2 font-bold text-white hover:bg-indigo-700"
+      >
+        Update Balance
       </button>
     </>
   );
